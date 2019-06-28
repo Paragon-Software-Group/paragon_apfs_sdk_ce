@@ -29,7 +29,7 @@ Paragon APFS SDK allows developers to access APFS volumes from their forensic so
 
 ## Limitations
 
-- Read-only access to APFS volumes. If you need read-write access: https://www.paragon-software.com/business/apfs-sdk-pro/
+- Read-only access to APFS volumes. A read-write version of Paragon APFS SDK will be available soon on site: https://www.paragon-software.com/
 - Only first sub-volume can be accessed on 32-bit platforms
 - Stable work with 16TB+ volumes is not guaranteed
 - No support for hardware-encrypted APFS volumes
@@ -163,7 +163,7 @@ $ sudo apfsutil my_new_case /dev/xxx/path/to/file/or/folder
 
 ## Read-Write access
 
-Some operations require the full Read-Write sources (Paragon APFS SDK Pro: https://www.paragon-software.com/business/apfs-sdk-pro/ ).
+Some operations require the full Read-Write sources (The version will be available soon on site: https://www.paragon-software.com/ ).
 In the Community Edition these cases will return a "not implemented" error.
 
 | test name    | test description |

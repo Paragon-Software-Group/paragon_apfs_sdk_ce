@@ -20,7 +20,7 @@
 #ifdef UFSD_APFS
 
 #ifdef UFSD_TRACE_ERROR
-static const char s_pFileName[] = __FILE__ ",$Revision: 331853 $";
+static const char s_pFileName[] = __FILE__ ",$Revision: 331999 $";
 #endif
 
 #include <ufsd.h>
@@ -308,22 +308,23 @@ CApfsVolumeSb::TraceVolumeHeader(apfs_vsb* vsb) const
   UNREFERENCED_PARAMETER(vsb);
 #endif
 
-  ULOG_INFO((GetLog(), "=== Parameters of APFS volume %d ======", vsb->vsb_volume_index));
+  ULOG_INFO((GetLog(), "=== Parameters of APFS volume %u ======", vsb->vsb_volume_index));
   TRACE_ONLY(unsigned char* m = reinterpret_cast<unsigned char*>(&vsb->vsb_magic));
   ULOG_INFO((GetLog(), "Magic [APSB]    : %c%c%c%c", m[0], m[1], m[2], m[3]));
-  ULOG_INFO((GetLog(), "Object id       : 0x%" PLL "x", vsb->header.id));
-  ULOG_INFO((GetLog(), "Checkpoint id   : 0x%" PLL "x", vsb->header.checkpoint_id));
+  ULOG_INFO((GetLog(), "Object id       : %#" PLL "x", vsb->header.id));
+  ULOG_INFO((GetLog(), "Checkpoint id   : %#" PLL "x", vsb->header.checkpoint_id));
   ULOG_INFO((GetLog(), "Volume name     : %s", vsb->vsb_volname));
-  ULOG_INFO((GetLog(), "Blocks used     : 0x%" PLL "x", vsb->vsb_blocks_used));
-  ULOG_INFO((GetLog(), "LocTree root    : 0x%" PLL "x", vsb->vsb_btom_root));
-  ULOG_INFO((GetLog(), "ExtentTree root : 0x%" PLL "x", vsb->vsb_extent_root));
-  ULOG_INFO((GetLog(), "Dirs            : 0x%" PLL "x", vsb->vsb_dirs_count));
-  ULOG_INFO((GetLog(), "Files           : 0x%" PLL "x", vsb->vsb_files_count));
-  ULOG_INFO((GetLog(), "Symlinks        : 0x%" PLL "x", vsb->vsb_symlinks_count));
-  ULOG_INFO((GetLog(), "Other           : 0x%" PLL "x", vsb->vsb_spec_files_count));
-  ULOG_INFO((GetLog(), "Snapshots       : 0x%" PLL "x", vsb->vsb_snapshots_count));
+  ULOG_INFO((GetLog(), "Blocks used     : %#" PLL "x", vsb->vsb_blocks_used));
+  ULOG_INFO((GetLog(), "LocTree root    : %#" PLL "x", vsb->vsb_btom_root));
+  ULOG_INFO((GetLog(), "ExtentTree root : %#" PLL "x", vsb->vsb_extent_root));
+  ULOG_INFO((GetLog(), "SnapTree root   : %#" PLL "x", vsb->vsb_snapshot_list));
+  ULOG_INFO((GetLog(), "Dirs            : %#" PLL "x", vsb->vsb_dirs_count));
+  ULOG_INFO((GetLog(), "Files           : %#" PLL "x", vsb->vsb_files_count));
+  ULOG_INFO((GetLog(), "Symlinks        : %#" PLL "x", vsb->vsb_symlinks_count));
+  ULOG_INFO((GetLog(), "Other           : %#" PLL "x", vsb->vsb_spec_files_count));
+  ULOG_INFO((GetLog(), "Snapshots       : %#" PLL "x", vsb->vsb_snapshots_count));
   ULOG_INFO((GetLog(), "FileNames       : case %ssensitive", IsCaseSensitive() ? "" : "in"));
-  ULOG_INFO((GetLog(), "Inc. features   : 0x%" PLL "x", vsb->vsb_incompat_features));
+  ULOG_INFO((GetLog(), "Inc. features   : %#" PLL "x", vsb->vsb_incompat_features));
   ULOG_INFO((GetLog(), "====================================="));
 }
 

@@ -20,7 +20,7 @@
 #ifdef UFSD_APFS
 
 #ifdef UFSD_TRACE_ERROR
-static const char s_pFileName[] = __FILE__ ",$Revision: 331828 $";
+static const char s_pFileName[] = __FILE__ ",$Revision: 332001 $";
 #endif
 
 #include <ufsd.h>
@@ -458,8 +458,8 @@ void CApfsSuperBlock::TraceSuperblockHeader(
   ULOG_INFO((m_Log, "SB area       : %#" PLL "x + %x, next: %x", sb->sb_first_sb, sb->sb_number_of_sb, sb->sb_next_sb));
   ULOG_INFO((m_Log, "Meta area     : %#" PLL "x + %x, next: %x", sb->sb_first_meta, sb->sb_number_of_meta, sb->sb_next_meta));
   ULOG_INFO((m_Log, "CSB map       : %#" PLL "x", sb->sb_current_sb + sb->sb_first_sb));
-  ULOG_INFO((m_Log, "Volume root   : %" PLL "x", sb->sb_volume_root_block));
-  ULOG_INFO((m_Log, "KeyBag        : %" PLL "x + %" PLL "x", sb->sb_keybag_block, sb->sb_keybag_count));
+  ULOG_INFO((m_Log, "Volume root   : %#" PLL "x", sb->sb_volume_root_block));
+  ULOG_INFO((m_Log, "KeyBag        : %#" PLL "x + %" PLL "x", sb->sb_keybag_block, sb->sb_keybag_count));
 
   ULOG_INFO((m_Log, "====================================="));
 }

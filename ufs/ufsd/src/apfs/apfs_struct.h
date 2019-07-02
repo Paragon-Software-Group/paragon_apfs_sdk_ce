@@ -104,7 +104,7 @@ struct apfs_block_header
   unsigned short    content_type;               //0x1C //APFS_CONTENT_ XXX
   unsigned short    padding;                    //0x1E //0
 }__attribute__((packed));
-
+C_ASSERT(sizeof(apfs_block_header) == 0x20);
 
 //main/checkpoint superblock
 struct apfs_sb
@@ -112,12 +112,12 @@ struct apfs_sb
   apfs_block_header header;                     //0x00 //Standart block header
 
   unsigned int      sb_magic;                   //0x20 //'NXSB'
-  unsigned int      sb_block_size;              //0x24 //Size of allocationt unit for fs
+  unsigned int      sb_block_size;              //0x24 //Size of allocation unit for fs
   UINT64            sb_total_blocks;            //0x28 //Number of blocks in the container
 
-  UINT64            sb_features;
-  UINT64            sb_ro_compat_features;
-  UINT64            sb_incompat_features;
+  UINT64            sb_features;                //0x30
+  UINT64            sb_ro_compat_features;      //0x38
+  UINT64            sb_incompat_features;       //0x40
   unsigned char     sb_uuid[0x10];              //0x48 //Uuid of container
   UINT64            sb_next_block_id;           //0x58
   UINT64            sb_next_checkpoint_id;      //0x60 //Next checkpoint id. Used for searching last CSB
@@ -131,7 +131,7 @@ struct apfs_sb
   unsigned int      sb_current_sb;              //0x88 //The current state SB_MAP is located in block sb_base_block + sb_curent_sb
   unsigned int      sb_current_sb_len;          //0x8C //number of blocks used in superblock buffer with current superblock (2 = sb_map + sb)
   unsigned int      sb_current_meta;            //0x90 //First meta block for this checkpoint
-  unsigned int      sb_blocks_sb_map_entries;   //0x98
+  unsigned int      sb_blocks_sb_map_entries;   //0x94
 
   UINT64            sb_spaceman_id;             //0x98 //id of bitmap
   UINT64            sb_volume_root_block;       //0xA0 //Contains address of Volume Block
@@ -179,7 +179,7 @@ struct apfs_sb_map_entry
   UINT64            object_id;                  //0x18
   UINT64            block;                      //0x20
 }__attribute__((packed));
-
+C_ASSERT(sizeof(apfs_sb_map_entry) == 0x28);
 
 //superblock map used for convert superblock id to block number
 #define APFS_SBMAP_LAST_MAP             1
@@ -199,6 +199,9 @@ struct apfs_shapshot_link
   UINT64            block;
   UINT64            checkpoint;
 }__attribute__((packed));
+
+//BTREE flags
+#define BTREE_SNAPSHOT_NOT_SUPPORTED      1     //B-tree doesn's support snapshots (as volume tree)
 
 //BTREE descriptor
 struct apfs_btreed
@@ -335,16 +338,16 @@ struct apfs_bmrb
 
 struct apfs_reap_entry
 {
-  unsigned int      next_entry;                 //0xffffffff - last entry
-  unsigned int      flags;                      //flags
-  unsigned short    block_type;                 //APFS_TYPE_ XXX
-  unsigned short    block_flags;                //APFS_BLOCK_FLAG_ XXX
-  unsigned int      block_size;
-  UINT64            volume_id;
-  UINT64            id;
-  UINT64            check_point;
+  unsigned int      next_entry;                 //0x00 //0xffffffff - last entry
+  unsigned int      flags;                      //0x04 //flags
+  unsigned short    block_type;                 //0x08 //APFS_TYPE_ XXX
+  unsigned short    block_flags;                //0x0A //APFS_BLOCK_FLAG_ XXX
+  unsigned int      block_size;                 //0x0C
+  UINT64            volume_id;                  //0x10
+  UINT64            id;                         //0x18
+  UINT64            check_point;                //0x20
 }__attribute__((packed));
-
+C_ASSERT(sizeof(apfs_reap_entry) == 0x28);
 
 struct apfs_volreap
 {
@@ -420,9 +423,9 @@ struct apfs_vsb
   unsigned int      vsb_unknown_0x68;           //0x68 //6
   unsigned int      vsb_unknown_0x6c;           //0x6c //95 01 41 11 or same
   unsigned int      vsb_unknown_0x70;           //0x70 //1
-  unsigned int      vsb_unknown_0x74;           //0x74 //2
-  unsigned int      vsb_unknown_0x78;           //0x78 //0x40000002
-  unsigned int      vsb_unknown_0x7c;           //0x7c //0x40000002
+  unsigned int      vsb_unknown_0x74;           //0x74 //2 root tree type
+  unsigned int      vsb_unknown_0x78;           //0x78 //0x40000002 extent tree type
+  unsigned int      vsb_unknown_0x7c;           //0x7c //0x40000002 snapshot tree type
 
   UINT64            vsb_btom_root;              //0x80 //Block number to initial block of catalog B-Tree Object Map(BTOM)
   UINT64            vsb_root_node_id;           //0x88 //Node ID of root node
@@ -431,7 +434,7 @@ struct apfs_vsb
 
   UINT64            vsb_unknown_0xa0[2];        //0xA0
 
-  UINT64            vsb_next_cnid;              //0xB0 //Next availible catalog node id (CNID)
+  UINT64            vsb_next_cnid;              //0xB0 //Next available catalog node id (CNID)
   UINT64            vsb_files_count;            //0xB8 //Number of files on the volume
   UINT64            vsb_dirs_count;             //0xC0 //Number of folders on the volume
   UINT64            vsb_symlinks_count;         //0xc8 //symlink counter
@@ -567,7 +570,7 @@ struct apfs_table_header
   unsigned short    empty_data_offset;          //0x14 //offset to first free entry in list
   unsigned short    empty_data_size;            //0x16 //size of all free entries
 }__attribute__((packed));
-
+C_ASSERT(sizeof(apfs_table_header) == 0x18);
 
 //Table index with various size
 struct apfs_table_var_item
@@ -599,7 +602,7 @@ struct apfs_table_footer
   UINT64        tf_count;                       //0x18 //records number in the table and underlaying tables
   UINT64        tf_number_of_blocks;            //0x20 //total number of blocks in all levels of Btree
 }__attribute__((packed));
-
+C_ASSERT(sizeof(apfs_table_footer) == 0x28);
 
 //apfs table structure
 struct apfs_table

@@ -769,7 +769,8 @@ public:
       IN unsigned char  VolIndex,
       IN bool           bHasFooter  = false,
       IN UINT64         Id          = 0,
-      IN UINT64         BlockNum    = 0
+      IN UINT64         BlockNum    = 0,
+      IN UINT64         Hint        = 0
       );
 
   //Move 1/2 records to the new table

@@ -345,7 +345,8 @@ EnumerateFolder(
   {
     if (bBrief )
     {
-      fprintf( stdout, "%s ", (char*)Info.Name );
+      const char* format = ( NULL == strchr((char*)Info.Name, ' ') ) ? "%s " : "'%s' ";
+      fprintf( stdout, format, (char*)Info.Name );
       continue;
     }
 
@@ -660,15 +661,24 @@ OnEnumSubvolumes(
   char MainVolName[MAX_FILENAME];
   CHECK_CALL(fs->GetVolumeInfo( NULL, NULL, NULL, NULL, 0, NULL, api::StrUTF8, MainVolName, MAX_FILENAME ));
 
-  fprintf( stdout, "%s ", MainVolName );
+  const char* format = ( NULL == strchr( MainVolName, ' ') ) ? "%s " : "'%s' ";
+  fprintf( stdout, format, MainVolName );
 
   const char* DirName = "Ufsd_Volumes";
   CDir* VolumeRoot;
 
-  CHECK_CALL( fs->m_RootDir->OpenDir( api::StrUTF8, DirName, fs->m_Strings->strlen( api::StrUTF8, DirName ), VolumeRoot ) );
+  int Status = fs->m_RootDir->OpenDir( api::StrUTF8, DirName, fs->m_Strings->strlen( api::StrUTF8, DirName ), VolumeRoot );
 
-  int Status = EnumerateFolder( VolumeRoot, true );
-  VolumeRoot->Destroy();
+  if ( UFSD_SUCCESS( Status ) )
+  {
+    Status = EnumerateFolder( VolumeRoot, true );
+    VolumeRoot->Destroy();
+  }
+  else
+  {
+    Status = ERR_NOERROR;
+    fprintf( stdout, "\n" );
+  }
 
   return Status;
 }

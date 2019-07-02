@@ -111,14 +111,15 @@ apfsutil already contains some simple user scenarios, such as
 ### Sub-volumes
 
 apfsutil can work with all sub-volumes in an APFS container. To mount all ones, add option --subvolumes to the apfsutil arguments. Without this option, only the main (1st) volume will be mounted.
-APFS SDK puts sub-volumes in the "/Ufsd_Volumes" folder. To read or enumerate files and folders on a sub-volume, its full path should be specified. For example, first of all, get a list of sub-volumes.
+Paragon APFS SDK puts sub-volumes in the "/Ufsd_Volumes" folder. To read or enumerate files and folders on a sub-volume, its full path should be specified. For example, first of all, get a list of sub-volumes.
 Note, for this user scenario the --subvolume is optional. If a required sub-volume name is known, this step can be skipped.
 ```sh
 $ apfsutil listsubvolumes /dev/xxx
-Sub-volumes:
+Volumes:
 Untitled Volume2 MyEncryptedVolume
 APFS: listsubvolumes returns 0. finished in 4 ms
 ```
+Important: this operation is only available on the unlocked (unmounted) APFS Container!
 
 Then enumerate the root sub-volume folder, or read any file
 ```sh
@@ -163,7 +164,7 @@ $ sudo apfsutil my_new_case /dev/xxx/path/to/file/or/folder
 
 ## Read-Write access
 
-Some operations require the full Read-Write sources (The version will be available soon on site: https://www.paragon-software.com/ ).
+Some operations require the full Read-Write sources (The version will be available soon on site: https://www.paragon-software.com/).
 In the Community Edition these cases will return a "not implemented" error.
 
 | test name    | test description |
@@ -238,4 +239,3 @@ Paragon APFS SDK also contains the following code:
 - lzfse - Copyright (c) 2015-2016, Apple Inc. All rights reserved. https://github.com/lzfse/lzfse/blob/master/LICENSE
 - zlib  - Copyright (c) 1995-2017 Jean-loup Gailly and Mark Adler
 - icu   - Copyright (c) 1991-2019 Unicode, Inc. All rights reserved. https://www.unicode.org/copyright.html.
-

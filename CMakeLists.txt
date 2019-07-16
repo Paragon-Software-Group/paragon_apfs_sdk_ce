@@ -72,7 +72,7 @@ if(MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
     set(CMAKE_CXX_FLAGS "/W4 ${CMAKE_CXX_FLAGS}")
 elseif(MINGW)
-    set(CMAKE_CXX_FLAGS "-Wno-format ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "-Wno-format -Wno-unknown-pragmas ${CMAKE_CXX_FLAGS}")
 
     include(CheckStructHasMember)
     set(_test_headers windows.h winioctl.h)
@@ -80,6 +80,7 @@ elseif(MINGW)
     if(HAVE_SET_PARTITION_INFORMATION_EX)
         add_definitions(-DUFSD_WITH_SET_PARTITION)
     endif()
+    add_definitions(-D_CONSOLE)
 elseif(UNIX)
     if(APPLE)
         set(CMAKE_SYSTEM_NAME Darwin)
@@ -335,6 +336,7 @@ add_definitions(-DUFSD_APFSUTIL
                 -DUFSD_LIB_STATIC
                 -DUFSD_USE_SIMPLE_CUFSD
                 -DSTATIC_MEMORY_MANAGER
+                -DUFSD_USE_STATIC_TRACE
                 )
 
 include_directories(${_baseapi}/include ${_ufsd_sdk}/include ${_crypt}/cipher ${_crypt}/hash)

@@ -115,6 +115,6 @@ public:
   }
 };
 
-}
+};
 
 #endif   // __UFSD_UNIX_BLOCK_H

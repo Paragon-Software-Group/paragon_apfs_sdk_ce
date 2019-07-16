@@ -106,7 +106,10 @@ CreateFsApfs(
 
 }
 
-static bool s_bVerbose;
+#ifndef _WIN32
+static bool s_bVerbose = false;
+#endif
+
 const char* s_szDev;
 const char* s_szFile;
 
@@ -676,7 +679,8 @@ OnEnumSubvolumes(
   }
   else
   {
-    Status = ERR_NOERROR;
+    if ( ERR_NOFILEEXISTS == Status )
+      Status = ERR_NOERROR;
     fprintf( stdout, "\n" );
   }
 
@@ -1022,7 +1026,7 @@ main(
   if (':' != s_szDev[1])
   {
     // Copy as is
-    strncpy(szDevice, s_szDev, ARRSIZE(szDevice));
+    strncpy(szDevice, s_szDev, ARRSIZE(szDevice)-1);
   }
   else
   {

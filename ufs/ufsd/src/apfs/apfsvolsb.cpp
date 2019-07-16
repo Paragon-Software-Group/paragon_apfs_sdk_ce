@@ -20,7 +20,7 @@
 #ifdef UFSD_APFS
 
 #ifdef UFSD_TRACE_ERROR
-static const char s_pFileName[] = __FILE__ ",$Revision: 331999 $";
+static const char s_pFileName[] = __FILE__ ",$Revision: 332054 $";
 #endif
 
 #include <ufsd.h>
@@ -122,10 +122,11 @@ CApfsVolumeSb::Load(UINT64 BlockNumber)
 
   assert(m_pVSB->vsb_volume_index == m_VolIndex);           //is it always true?
 
-  m_bReadOnly = (m_pVSB->vsb_snapshots_count != 0);
-
-  if (m_bReadOnly && !m_pSuper->IsReadOnly())
-    ULOG_TRACE((GetLog(), "Volume #%x is readonly because it has snapshots", m_pVSB->vsb_volume_index));
+  if ( m_pVSB->vsb_snapshots_count != 0 && !m_pSuper->IsReadOnly() )
+  {
+    m_bReadOnly = true;
+    ULOG_TRACE( (GetLog(), "Volume #%x is readonly because it has snapshots", m_pVSB->vsb_volume_index) );
+  }
 
   //Read Btree object map
   if (m_pLocationTree == NULL)
@@ -154,6 +155,12 @@ CApfsVolumeSb::Load(UINT64 BlockNumber)
   {
     ULOG_WARNING((GetLog(), "Location Table BlockSize=%x and File System BlockSize=%x are differ", val.ltd_length, m_pSuper->GetBlockSize()));
     return ERR_FSUNKNOWN;
+  }
+
+  if ( !m_bReadOnly && FlagOn( m_pVSB->vsb_volume_role, APFS_VOL_ROLE_SYSTEM ) )
+  {
+    ULOG_INFO(( GetLog(), "Volume is read-only due to its role (SYSTEM)" ));
+    m_bReadOnly = true;
   }
 
   m_ObjectTreeRootBlock = val.ltd_block;
@@ -313,6 +320,9 @@ CApfsVolumeSb::TraceVolumeHeader(apfs_vsb* vsb) const
   ULOG_INFO((GetLog(), "Magic [APSB]    : %c%c%c%c", m[0], m[1], m[2], m[3]));
   ULOG_INFO((GetLog(), "Object id       : %#" PLL "x", vsb->header.id));
   ULOG_INFO((GetLog(), "Checkpoint id   : %#" PLL "x", vsb->header.checkpoint_id));
+  ULOG_INFO((GetLog(), "Features        : %#" PLL "x ro=%#" PLL "x inc=%#" PLL "x",
+               vsb->vsb_features, vsb->vsb_ro_compat_features, vsb->vsb_incompat_features));
+  ULOG_INFO((GetLog(), "Role            : %#" PLL "x", vsb->vsb_volume_role));
   ULOG_INFO((GetLog(), "Volume name     : %s", vsb->vsb_volname));
   ULOG_INFO((GetLog(), "Blocks used     : %#" PLL "x", vsb->vsb_blocks_used));
   ULOG_INFO((GetLog(), "LocTree root    : %#" PLL "x", vsb->vsb_btom_root));
@@ -324,7 +334,6 @@ CApfsVolumeSb::TraceVolumeHeader(apfs_vsb* vsb) const
   ULOG_INFO((GetLog(), "Other           : %#" PLL "x", vsb->vsb_spec_files_count));
   ULOG_INFO((GetLog(), "Snapshots       : %#" PLL "x", vsb->vsb_snapshots_count));
   ULOG_INFO((GetLog(), "FileNames       : case %ssensitive", IsCaseSensitive() ? "" : "in"));
-  ULOG_INFO((GetLog(), "Inc. features   : %#" PLL "x", vsb->vsb_incompat_features));
   ULOG_INFO((GetLog(), "====================================="));
 }
 

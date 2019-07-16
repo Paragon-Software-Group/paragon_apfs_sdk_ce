@@ -25,7 +25,7 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 #include <windows.h>
-static WCHAR (WINAPI * s_RtlUpcaseUnicodeChar)( IN WCHAR  SourceCharacter );
+//static WCHAR (WINAPI * s_RtlUpcaseUnicodeChar)( IN WCHAR  SourceCharacter );
 #endif
 
 #ifndef C_ASSERT

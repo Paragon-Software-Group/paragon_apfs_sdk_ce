@@ -20,7 +20,7 @@
 #ifdef UFSD_APFS
 
 #ifdef UFSD_TRACE_ERROR
-static const char s_pFileName[] = __FILE__ ",$Revision: 332001 $";
+static const char s_pFileName[] = __FILE__ ",$Revision: 332054 $";
 #endif
 
 #include <ufsd.h>
@@ -451,15 +451,16 @@ void CApfsSuperBlock::TraceSuperblockHeader(
   TRACE_ONLY(unsigned char* m = reinterpret_cast<unsigned char*>(&sb->sb_magic));
 
   ULOG_INFO((m_Log, "Magic [NXSB]  : %c%c%c%c", m[0], m[1], m[2], m[3]));
-  ULOG_INFO((m_Log, "Checkpoint id : %#" PLL "x, next: %" PLL "x", sb->header.checkpoint_id, sb->sb_next_checkpoint_id));
+  ULOG_INFO((m_Log, "Version       : %u (macOS 10.%u)", sb->sb_incompat_features & 0xFF, sb->sb_incompat_features & 0x1 ? 12 : 13));
+  ULOG_INFO((m_Log, "Checkpoint id : %#" PLL "x, next: %#" PLL "x", sb->header.checkpoint_id, sb->sb_next_checkpoint_id));
   ULOG_INFO((m_Log, "Total blocks  : %#" PLL "x, %s", sb->sb_total_blocks, m_Rw->IsReadOnly() ? "ro" : "rw"));
   ULOG_INFO((m_Log, "BlockSize     : %#x", sb->sb_block_size));
   ULOG_INFO((m_Log, "Current SB    : %#x + %x", sb->sb_current_sb, sb->sb_current_sb_len));
-  ULOG_INFO((m_Log, "SB area       : %#" PLL "x + %x, next: %x", sb->sb_first_sb, sb->sb_number_of_sb, sb->sb_next_sb));
-  ULOG_INFO((m_Log, "Meta area     : %#" PLL "x + %x, next: %x", sb->sb_first_meta, sb->sb_number_of_meta, sb->sb_next_meta));
+  ULOG_INFO((m_Log, "SB area       : %#" PLL "x + %#x, next: %#x", sb->sb_first_sb, sb->sb_number_of_sb, sb->sb_next_sb));
+  ULOG_INFO((m_Log, "Meta area     : %#" PLL "x + %#x, next: %#x", sb->sb_first_meta, sb->sb_number_of_meta, sb->sb_next_meta));
   ULOG_INFO((m_Log, "CSB map       : %#" PLL "x", sb->sb_current_sb + sb->sb_first_sb));
   ULOG_INFO((m_Log, "Volume root   : %#" PLL "x", sb->sb_volume_root_block));
-  ULOG_INFO((m_Log, "KeyBag        : %#" PLL "x + %" PLL "x", sb->sb_keybag_block, sb->sb_keybag_count));
+  ULOG_INFO((m_Log, "KeyBag        : %#" PLL "x + %#" PLL "x", sb->sb_keybag_block, sb->sb_keybag_count));
 
   ULOG_INFO((m_Log, "====================================="));
 }

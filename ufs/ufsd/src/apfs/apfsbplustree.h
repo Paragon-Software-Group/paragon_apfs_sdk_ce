@@ -396,7 +396,7 @@ public:
   int UpdateEntryLeafData(CEntrySearchKey* Key, apfs_direntry_data* NewData) { return UpdateLeafItemData(Key, NewData, sizeof(apfs_direntry_data)); }
   int UpdateExtentLeafData(CExtentSearchKey* Key, apfs_extent_data* NewData) { return UpdateLeafItemData(Key, NewData, sizeof(apfs_extent_data)); }
   int UpdateXAttrLeafData(CXAttrSearchKey* Key, apfs_xattr_data* NewData, unsigned short NewDataLen) { return UpdateLeafItemData(Key, NewData, NewDataLen); }
-  int UpdateLocationLeafData(CLocationSearchKey* Key, apfs_location_table_data* NewData) { return UpdateLeafItemData(Key, NewData, sizeof(apfs_direntry_data)); }
+  int UpdateLocationLeafData(CLocationSearchKey* Key, apfs_location_table_data* NewData) { return UpdateLeafItemData(Key, NewData, sizeof(apfs_location_table_data)); }
 
   //Update leaf item key
   //NewKey shouldn't cross with table buffer

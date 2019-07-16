@@ -277,7 +277,7 @@ struct CUFSD_RWBlock : public api::IDeviceRWBlock, public base_noncopyable
   {
   }
 
-  ~CUFSD_RWBlock()
+  virtual ~CUFSD_RWBlock()
   {
     if ( -1 != m_hFile )
     {
@@ -747,8 +747,8 @@ CUFSD_RWBlock::DiscardRange(
   free( mem );
   return err;
 #elif defined(__MINGW32__)
-  DBG_UNREFERENCED_PARAMETER( Offset );
-  DBG_UNREFERENCED_PARAMETER( Bytes );
+  //DBG_UNREFERENCED_PARAMETER( Offset );
+  //DBG_UNREFERENCED_PARAMETER( Bytes );
   return ERR_NOTIMPLEMENTED;
 #else
   UNREFERENCED_PARAMETER( Offset );

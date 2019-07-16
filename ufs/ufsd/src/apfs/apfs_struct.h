@@ -41,6 +41,7 @@
 #define APFS_ROOT_INO                   0x02        /* 'root' inode */
 #define APFS_PRIVATE_DIR_INO            0x03        /* 'private-dir' inode */
 #define APFS_SNAPSHOT_DIR_INO           0x06        /* The inode number for the directory where snapshot metadata is stored */
+#define APFS_UNKNOWN_7_INO              0x07        /* Some Analytics-Journal files */
 #define APFS_FIRST_FREE_INO             0x10        /* First non-reserved inode */
 
 //APFS block types
@@ -89,6 +90,14 @@
 #define APFS_ENCRYPTED_BLOCK            PU64(0x8000000000000000)
 #define APFS_MAPPED_BLOCK               PU64(0x0004000000000000)
 
+//volume role
+#define APFS_VOL_ROLE_NONE              0x0000
+#define APFS_VOL_ROLE_SYSTEM            0x0001    // should be read-only
+#define APFS_VOL_ROLE_RECOVERY          0x0004
+#define APFS_VOL_ROLE_VM                0x0008
+#define APFS_VOL_ROLE_PREBOOT           0x0010
+#define APFS_VOL_ROLE_DATA              0x0040
+
 //Time in nanoseconds since 1970-01-01.
 typedef UINT64 apfs_time;
 
@@ -96,7 +105,7 @@ typedef UINT64 apfs_time;
 //The majority of meta - data blocks in APFS have a 32 - byte header. The exceptions include the Superblocks and the bitmap blocks.
 struct apfs_block_header
 {
-  UINT64            checksum;                   //0x00 //Fletchers Checksum Algorithm
+  UINT64            checksum;                   //0x00 //Fletcher's Checksum Algorithm
   UINT64            id;                         //0x08 //Object id or block number
   UINT64            checkpoint_id;              //0x10 //id of checkpoint this block belongs to
   unsigned short    block_type;                 //0x18 //APFS_TYPE_ XXX
@@ -109,7 +118,7 @@ C_ASSERT(sizeof(apfs_block_header) == 0x20);
 //main/checkpoint superblock
 struct apfs_sb
 {
-  apfs_block_header header;                     //0x00 //Standart block header
+  apfs_block_header header;                     //0x00 //Standard block header
 
   unsigned int      sb_magic;                   //0x20 //'NXSB'
   unsigned int      sb_block_size;              //0x24 //Size of allocation unit for fs
@@ -161,8 +170,10 @@ struct apfs_sb
   UINT64            sb_fusion_block_id;         //0x550 // id of fusion block type
   UINT64            sb_fusion_list_block;       //0x558 // first block of fusion list
   UINT64            sb_size_of_fusion_list;     //0x560 // number of block in fusion list
+
+  UINT64            sb_unknown_0x568;           //0x568 // a9 a8 99 c3 49 ef 04 00 - ? (since 10.15)
 }__attribute__((packed));
-C_ASSERT(sizeof(apfs_sb) == 0x568);
+C_ASSERT(sizeof(apfs_sb) == 0x570);
 
 
 //entries in superblock map
@@ -187,7 +198,7 @@ C_ASSERT(sizeof(apfs_sb_map_entry) == 0x28);
 
 struct apfs_sb_map
 {
-  apfs_block_header header;                     //0x00 //Standart block header
+  apfs_block_header header;                     //0x00 //Standard block header
   unsigned int      flags;                      //0x20 //APFS_SBMAP_LAST_MAP
   unsigned int      entries_count;              //0x24 //Number of map entries
   apfs_sb_map_entry entries[1];                 //0x28 //Array of map entries
@@ -206,7 +217,7 @@ struct apfs_shapshot_link
 //BTREE descriptor
 struct apfs_btreed
 {
-  apfs_block_header header;                     //0x00 //Standart block header
+  apfs_block_header header;                     //0x00 //Standard block header
   unsigned int      type;                       //0x20 //0-inode tree, 1-volume tree
   unsigned int      number_of_snapshots;        //0x24 //
   unsigned int      tree_type;                  //0x28 //0x40000002
@@ -219,7 +230,7 @@ struct apfs_btreed
 //Bitmap descriptor or spacemanager
 struct apfs_bmd
 {
-  apfs_block_header header;                     //0x00 //Standart block header
+  apfs_block_header header;                     //0x00 //Standard block header
   unsigned int      block_size;                 //0x20 //Size of allocationt unit
   unsigned int      number_of_blocks_in_bmb;    //0x24 //blocks per chunk
   unsigned int      max_records_in_bmrb;        //0x28 //chunks per cib
@@ -308,7 +319,7 @@ struct apfs_bmd
 //bitmap index block
 struct apfs_bmib
 {
-  apfs_block_header header;                     //0x00 //Standart block header
+  apfs_block_header header;                     //0x00 //Standard block header
   unsigned int      block_index;                //0x20 //number of this index block
   unsigned int      number_of_bmrb;             //0x24 //numbers of entry
   UINT64            bmrb[1];                    //0x28 //array of bmrb blocks
@@ -329,7 +340,7 @@ struct apfs_bm_entry
 //bitmap record block
 struct apfs_bmrb
 {
-  apfs_block_header header;                     //0x00 //Standart block header
+  apfs_block_header header;                     //0x00 //Standard block header
   unsigned int      block_index;                //0x20 //number of this record block
   unsigned int      number_of_records;          //0x24 //numbers of entry
   apfs_bm_entry     records[1];                 //0x28 //array of entries
@@ -351,7 +362,7 @@ C_ASSERT(sizeof(apfs_reap_entry) == 0x28);
 
 struct apfs_volreap
 {
-  apfs_block_header header;                     //0x00 //Standart block header
+  apfs_block_header header;                     //0x00 //Standard block header
   UINT64            checkpoint1;                //0x20
   UINT64            checkpoint2;                //0x28
   UINT64            reaplist_id1;               //0x30 //head
@@ -365,7 +376,7 @@ struct apfs_volreap
 
 struct apfs_reaplist
 {
-  apfs_block_header header;                     //0x00 //Standart block header
+  apfs_block_header header;                     //0x00 //Standard block header
   unsigned char     reserved[12];               //0x20 //0
   unsigned int      max_record_count;           //0x2c //100
   unsigned int      entry_count;
@@ -385,7 +396,7 @@ struct apfs_efi_extent
 
 struct apfs_efi_jumpstart
 {
-  apfs_block_header header;                     //0x00 //Standart block header
+  apfs_block_header header;                     //0x00 //Standard block header
   unsigned int      magic;                      //0x20 //APFS_EFI_JUMPSTART_MAGIC
   unsigned int      version;                    //0x24
   unsigned int      file_length;                //0x28
@@ -408,13 +419,13 @@ struct apfs_volume_update
 //volume superblock
 struct apfs_vsb
 {
-  apfs_block_header header;                     //0x00 //Standart block header
+  apfs_block_header header;                     //0x00 //Standard block header
   unsigned int      vsb_magic;                  //0x20 //"APSB"
   unsigned int      vsb_volume_index;           //0x24 //Volume index. First volume has index 0
   UINT64            vsb_features;               //0x28
   UINT64            vsb_ro_compat_features;     //0x30
   UINT64            vsb_incompat_features;      //0x38
-  UINT64            vsb_unmount_time;           //0x40 //???
+  UINT64            vsb_unmount_time;           //0x40
   UINT64            vsb_blocks_reserved;        //0x48
   UINT64            vsb_blocks_quota;           //0x50
   UINT64            vsb_blocks_used;            //0x58
@@ -450,20 +461,22 @@ struct apfs_vsb
 
   char              vsb_volname[VOLNAME_LEN];   //0x2C0 //Volume name
   unsigned int      vsb_next_doc_id;            //0x3C0
-  unsigned int      vsb_unknown_0x3c4;          //0x3c4 //??? some flags
+  unsigned int      vsb_volume_role;            //0x3c4 //Volume role (Data, Preboot, VM, Recovery, ...)
   UINT64            vsb_unknown_0x3c8;          //0x3c8 // 0
   UINT64            vsb_encryption_block;       //0x3d0 //apfs_encryption_descriptor
 
   UINT64            vsb_cnid_on_update;         //0x3d8 cnid on last volume update ???
   UINT64            vsb_checkpoint_on_update;   //0x3e0 checkpoint on last volume update
+
   UINT64            vsb_unknown_0x3e8;          //0x3e8
+  unsigned char     vsb_unknown_0x3f0[0x10];    //0x3f0 - 0a 81 f3 b1 51 d9 33 35 b3 e3 16 9c 36 40 36 0d - ? (since 10.15) - volume group(?)
 }__attribute__((aligned(2), packed));
-C_ASSERT(sizeof(apfs_vsb) == 0x3F0);
+C_ASSERT(sizeof(apfs_vsb) == 0x400);
 
 
 struct apfs_encryption_descriptor
 {
-  apfs_block_header header;                     //0x00 //Standart block header
+  apfs_block_header header;                     //0x00 //Standard block header
   unsigned int      magic;                      //0x20 //APFS_ENCRYPTION_BLOCK_MAGIC
   unsigned int      unknown_0x24;               //0x24 //1
   UINT64            unknown_0x28;               //0x28 //maybe some flags 1;1001;1021;2021;3021
@@ -486,7 +499,7 @@ struct apfs_encryption_descriptor
 
 struct apfs_encryption_root
 {
-  apfs_block_header header;                     //0x00 //Standart block header
+  apfs_block_header header;                     //0x00 //Standard block header
   UINT64            encryption_tree;            //0x20 //encryption tree root block
   UINT64            total_blocks;               //0x28
 }__attribute__((packed));
@@ -494,7 +507,7 @@ struct apfs_encryption_root
 
 struct apfs_encryption
 {
-  apfs_block_header header;                     //0x00 //Standart block header
+  apfs_block_header header;                     //0x00 //Standard block header
   unsigned char     unknown_0x20[0x1d0];        //0x20 //0
   UINT64            flags;                      //0x1f0 //???
   UINT64            unknown_0x1f8;              //0x1f8 //0
@@ -504,7 +517,7 @@ struct apfs_encryption
 
 struct apfs_fusion
 {
-  apfs_block_header header;                     //0x00 //Standart block header
+  apfs_block_header header;                     //0x00 //Standard block header
   UINT64            unknown_0x20;               //0x20 //0x70
   UINT64            first_not_flushed;          //0x28 //first not flushed block
   UINT64            last_not_flushed;           //0x30 //last not flushed block
@@ -526,7 +539,7 @@ struct apfs_fusion_list_entry
 
 struct apfs_fusion_list
 {
-  apfs_block_header         header;             //0x00 //Standart block header
+  apfs_block_header         header;             //0x00 //Standard block header
   UINT64                    flags;              //0x20 //0x40
   UINT64                    block_id;           //0x28
   unsigned int              unknown_0x30;       //0x30 //0 ...
@@ -769,9 +782,10 @@ struct apfs_direntry_data
 {
   UINT64            id;
   apfs_time         timestamp;
-  unsigned short    type;                       // ApfsEntryType
+  unsigned char     type;                       // ApfsEntryType
+  unsigned char     flag;                       // 00 | 05 | 08
 }__attribute__((packed));
-
+C_ASSERT( sizeof( apfs_direntry_data ) == 0x12 );
 
 struct apfs_hlink_key
 {
@@ -828,6 +842,7 @@ struct apfs_extent_data
 #define INODE_FTYPE_NAME         0x04
 #define INODE_FTYPE_05           0x05
 #define INODE_FTYPE_SIZE         0x08
+#define INODE_FTYPE_0A           0x0a
 #define INODE_FTYPE_SPARSE_BYTES 0x0d
 #define INODE_FTYPE_DEVICE       0x0e
 
@@ -840,8 +855,11 @@ struct apfs_extent_data
 #define INODE_FIELD_SIZE            ((INODE_FFLAG_20<<8)                  |INODE_FTYPE_SIZE)           //0x2008 apfs_data_size
 #define INODE_FIELD_SPARSE_BYTES    (((INODE_FFLAG_20|INODE_FFLAG_08)<<8) |INODE_FTYPE_SPARSE_BYTES)   //0x280d UINT64
 #define INODE_FIELD_DOC_ID          ((INODE_FFLAG_02<<8)                  |INODE_FTYPE_DOC_ID)         //0x0203|0x2203 unsigned int
+#define INODE_FIELD_DOC20_ID        ((INODE_FFLAG_20<<8)                  |INODE_FTYPE_DOC_ID)         //0x2003
+#define INODE_FIELD_DOC22_ID        (((INODE_FFLAG_20|INODE_FFLAG_02)<<8) |INODE_FTYPE_DOC_ID)         //0x2203
 #define INODE_FIELD_DEVICE          (((INODE_FFLAG_20|INODE_FFLAG_02)<<8) |INODE_FTYPE_DEVICE)         //0x220e unsigned int
 #define INODE_FIELD_0005            ((INODE_FFLAG_00<<8)                  |INODE_FTYPE_05)             //0x0005 UINT64
+
 
 #define APFS_DEVICE_SPEC_MAJOR(x) (((x) >> 24) & 0xff)
 #define APFS_DEVICE_SPEC_MINOR(x) ((x) & 0xffffff)
@@ -882,9 +900,22 @@ struct apfs_inode_field
 #define FS_UFLAG_HIDDEN         0x008000
 #define FS_SFLAG_RESTRICTED     0x080000
 #define FS_SFLAG_UNLINK         0x100000
-#define FS_FLAG_MASK            0x1880e2
+#define FS_SFLAG_800000         0x800000    // firmlink
+#define FS_SFLAG_40000000     0x40000000
+
+#define FS_FLAG_MASK           (FS_UFLAG_IMMUTABLE  | \
+                                FS_UFLAG_COMPRESSED | \
+                                FS_UFLAG_TRACKED    | \
+                                FS_UFLAG_DATAVAULT  | \
+                                FS_UFLAG_HIDDEN     | \
+                                FS_SFLAG_RESTRICTED | \
+                                FS_SFLAG_UNLINK     | \
+                                FS_SFLAG_800000     | \
+                                FS_SFLAG_40000000   )
 
 //inode flags
+#define FS_IFLAG_0002           0x0002          //inode with field and key 0xa
+#define FS_IFLAG_0004           0x0004          //inode with field and key 0xa
 #define FS_IFLAG_0008           0x0008          //??? 0x8008
 #define FS_IFLAG_FULL_CLONED    0x0010          //data or EA extents is cloned (full cloned)
 #define FS_IFLAG_SECURITY       0x0040          //EA system.Security is present
@@ -892,14 +923,34 @@ struct apfs_inode_field
 #define FS_IFLAG_FINDER_INFO    0x0100          //EA FinderInfo is present
 #define FS_IFLAG_SPARSE         0x0200          //file has sparse data
 #define FS_IFLAG_CLONED         0x0400          //??? 0x84xx some part of data cloned
+#define FS_IFLAG_1000           0x1000          //???
 #define FS_IFLAG_FORK           0x4000          //EA ResourceFork is present
 #define FS_IFLAG_DEFAULT        0x8000          //default flag
-#define FS_IFLAG_FILESIZE       0x40000         //flag for file size in inode ai_file_size
+#define FS_IFLAG_20000         0x20000          //???
+#define FS_IFLAG_FILESIZE      0x40000          //flag for file size in inode ai_file_size
+#define FS_IFLAG_80000         0x80000          //??? inode has firmlink xattr
+#define FS_IFLAG_200000       0x200000          //
 
-#define FS_IFLAG_MASK           0x4c7d8
+#define FS_IFLAG_MASK          (FS_IFLAG_0002        | \
+                                FS_IFLAG_0004        | \
+                                FS_IFLAG_0008        | \
+                                FS_IFLAG_FULL_CLONED | \
+                                FS_IFLAG_SECURITY    | \
+                                FS_IFLAG_0080        | \
+                                FS_IFLAG_FINDER_INFO | \
+                                FS_IFLAG_SPARSE      | \
+                                FS_IFLAG_CLONED      | \
+                                FS_IFLAG_1000        | \
+                                FS_IFLAG_FORK        | \
+                                FS_IFLAG_DEFAULT     | \
+                                FS_IFLAG_20000       | \
+                                FS_IFLAG_80000       | \
+                                FS_IFLAG_200000      | \
+                                FS_IFLAG_FILESIZE    )
 
 //system extended attributes
 #define XATTR_SYMLINK           "com.apple.fs.symlink"
+#define XATTR_FIRMLINK          "com.apple.fs.firmlink"
 #define XATTR_FORK              "com.apple.ResourceFork"
 #define XATTR_COMPRESSED        "com.apple.decmpfs"
 #define XATTR_SECURITY          "com.apple.system.Security"
@@ -908,11 +959,12 @@ struct apfs_inode_field
 #define XATTR_QUARANTINE        "com.apple.quarantine"
 #define XATTR_ROOTLESS          "com.apple.rootless"
 
-#define XATTR_SYMLINK_LEN       sizeof(XATTR_SYMLINK) - 1
-#define XATTR_FORK_LEN          sizeof(XATTR_FORK) - 1
-#define XATTR_COMPRESSED_LEN    sizeof(XATTR_COMPRESSED) - 1
-#define XATTR_SECURITY_LEN      sizeof(XATTR_SECURITY) - 1
-#define XATTR_FINDER_LEN        sizeof(XATTR_FINDER_INFO) - 1
+#define XATTR_SYMLINK_LEN       (sizeof(XATTR_SYMLINK) - 1)
+#define XATTR_FIRMLINK_LEN      (sizeof(XATTR_FIRMLINK) - 1)
+#define XATTR_FORK_LEN          (sizeof(XATTR_FORK) - 1)
+#define XATTR_COMPRESSED_LEN    (sizeof(XATTR_COMPRESSED) - 1)
+#define XATTR_SECURITY_LEN      (sizeof(XATTR_SECURITY) - 1)
+#define XATTR_FINDER_LEN        (sizeof(XATTR_FINDER_INFO) - 1)
 
 struct apfs_inode
 {
@@ -1030,9 +1082,10 @@ enum StorageCompressionOptions
 
 struct apfs_compressed_attr
 {
-  unsigned int magic;        //magic number, always "fpmc"
-  unsigned int type;         //attribute type (StorageCompressionOptions)
-  UINT64 data_size;          //size of this fs object data (uncompressed)
+  unsigned int magic;          //magic number, always "fpmc"
+  unsigned short type;         //attribute type (StorageCompressionOptions)
+  unsigned short flag;         //???
+  UINT64 data_size;            //size of this fs object data (uncompressed)
 }__attribute__((packed));
 
 #define APFS_LZFSE_ENDOFSTREAM_BLOCK_MAGIC      0x24787662   /* bvx$ (end of stream) */

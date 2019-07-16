@@ -403,16 +403,16 @@ private:
 #endif
 
 #ifdef UFSD_APFS_TRACE
-  int TraceRawApfs();
+  int TraceRawApfs() const;
   int TraceApfs();
-  int EnumBitmap(bool fRangesOnly);
-  int TraceApfsBlocks(UINT64 FirstBlock, UINT64 Count, bool fHistory = false);
-  int TraceBlock(UINT64 BlockNumber, void* pBlock, bool fHistory = false);
+  int EnumBitmap(bool fRangesOnly) const;
+  int TraceApfsBlocks(UINT64 FirstBlock, UINT64 Count, bool fHistory = false) const;
+  int TraceBlock(UINT64 BlockNumber, void* pBlock, bool fHistory = false) const;
   int TraceTable(void* pBlock) const;
   int TraceTableContent(const apfs_block_header* pBH, const apfs_table_header* pTab) const;
   int TraceApfsVolume(CApfsVolumeSb* pVol);
-  int TraceTableDump(UINT64 Block, CApfsTree* pLocation);
-  int TraceKeybagBlocks(UINT64 BlockNumber, UINT64 Count, const unsigned char* uuid);
+  int TraceTableDump(UINT64 Block, CApfsTree* pLocation) const;
+  int TraceKeybagBlocks(UINT64 BlockNumber, UINT64 Count, const unsigned char* uuid) const;
 #endif
 };
 

@@ -60,6 +60,8 @@ or Windows
 $ apfsutil enumfolder f:\test_folder
 ```
 
+Important: All operations are only available for unlocked (unmounted) APFS containers!
+
 ### Build prerequisites
 
 - C++ compiler
@@ -119,7 +121,6 @@ Volumes:
 Untitled Volume2 MyEncryptedVolume
 APFS: listsubvolumes returns 0. finished in 4 ms
 ```
-Important: this operation is only available on the unlocked (unmounted) APFS Container!
 
 Then enumerate the root sub-volume folder, or read any file
 ```sh

@@ -434,9 +434,9 @@ static int GetDerivedKey(
     {
       CHECK_CALL_LOG(Cf->Hmac(I_CIPHER_SHA256, Pass, PassSize, mac, sizeof(mac), mac), Log);
       // due to hLen % 8 == 0
-      *k       ^= *m,
-      *(k + 1) ^= *(m + 1),
-      *(k + 2) ^= *(m + 2),
+      *k       ^= *m;
+      *(k + 1) ^= *(m + 1);
+      *(k + 2) ^= *(m + 2);
       *(k + 3) ^= *(m + 3);
     }
 

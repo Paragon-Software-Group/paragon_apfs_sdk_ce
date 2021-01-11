@@ -594,7 +594,7 @@ UINT64 CApfsSuperBlock::CreateFSum(
     IN size_t Size
     )
 {
-  register unsigned int* p = reinterpret_cast<unsigned int*>(pData);
+  unsigned int* p = reinterpret_cast<unsigned int*>(pData);
   Size /= 4;
 
   volatile UINT64 sum1 = 0;

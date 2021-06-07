@@ -241,15 +241,24 @@ int CUnixFileSystem::SetVolumeInfo(
 }
 
 int CUnixFileSystem::IoControl(
-    IN  size_t      ,
-    IN  const void* ,
-    IN  size_t      ,
-    OUT void*       ,
-    IN  size_t      ,
-    OUT size_t*
+    IN  size_t      FsIoControlCode,
+    IN  const void* InBuffer,
+    IN  size_t      InBufferSize,
+    OUT void*       OutBuffer,
+    IN  size_t      OutBufferSize,
+    OUT size_t*     BytesReturned
     )
 {
-  return ERR_NOTIMPLEMENTED;
+    m_IO.InBuffer = InBuffer;
+    m_IO.InBufferSize = InBufferSize;
+    m_IO.OutBuffer = OutBuffer;
+    m_IO.OutBufferSize = OutBufferSize;
+    m_IO.BytesReturned = BytesReturned;
+    switch (FsIoControlCode) {
+        case IOCTL_GET_APFS_INFO:
+            return OnGetApfsInfo();
+    }
+    return ERR_NOTIMPLEMENTED;
 }
 
 int CUnixFileSystem::OnGetRetrievalPointers() { return ERR_NOTIMPLEMENTED; }

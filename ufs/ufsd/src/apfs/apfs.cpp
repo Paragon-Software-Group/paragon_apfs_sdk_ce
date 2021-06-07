@@ -220,6 +220,40 @@ int CApfsFileSystem::ReInit(
   return CUnixFileSystem::ReInit( Options, Flags, Params );
 }
 
+int CApfsFileSystem::OnGetApfsInfo()
+{
+    size_t BytesReturned = 0;
+    struct UFSD_VOLUME_APFS_INFO *info = (struct UFSD_VOLUME_APFS_INFO *) m_IO.OutBuffer;
+    for (unsigned int Idx = 0; Idx < m_pApfsSuper->GetMountedVolumesCount(); Idx++) {
+        if (BytesReturned + sizeof(struct UFSD_VOLUME_APFS_INFO) > m_IO.OutBufferSize)
+        {
+            if (m_IO.BytesReturned)
+                *m_IO.BytesReturned = BytesReturned;
+            return Idx ? ERR_MORE_DATA : ERR_INSUFFICIENT_BUFFER;
+        }
+        CApfsVolumeSb *vol = m_pApfsSuper->GetVolume(Idx);
+        apfs_vsb *volSb = vol->GetVolumeSb();
+        info[Idx] = {
+            .BlocksUsed = volSb->vsb_blocks_used,
+            .BlocksReserved = volSb->vsb_blocks_reserved,
+            .FilesCount = volSb->vsb_files_count,
+            .DirsCount = volSb->vsb_dirs_count,
+            .SymlinksCount = volSb->vsb_symlinks_count,
+            .SpecFilesCount = volSb->vsb_spec_files_count,
+            .SnapshotsCount = volSb->vsb_snapshots_count,
+            .Index = Idx,
+            .Encrypted = vol->IsEncrypted(),
+            .CaseSensitive = vol->IsCaseSensitive()
+        };
+        Memcpy2(info[Idx].SerialNumber, volSb->vsb_uuid, 0x10);
+        Memcpy2(info[Idx].VolumeName, volSb->vsb_volname, 0x100);
+        info[Idx].Creator[0] = '\0';
+        BytesReturned += sizeof(struct UFSD_VOLUME_APFS_INFO);
+    }
+    if (m_IO.BytesReturned)
+        *m_IO.BytesReturned = BytesReturned;
+    return ERR_NOERROR;
+}
 
 #ifdef UFSD_APFS_RO
 /////////////////////////////////////////////////////////////////////////////

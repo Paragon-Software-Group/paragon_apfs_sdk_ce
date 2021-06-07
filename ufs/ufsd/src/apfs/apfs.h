@@ -126,13 +126,13 @@ public:
   // Find cluster with the last checkpoint superblock
   int FindCSBBlock(const apfs_sb* pMSB, UINT64& Block) const;
 
+  // Handler for IOCTL_GET_APFS_INFO
+  virtual int OnGetApfsInfo();
+
 #ifndef UFSD_APFS_RO
   //=================================================================
   //          APFS I/O handlers
   //=================================================================
-
-  // Handler for IOCTL_GET_APFS_INFO
-  virtual int OnGetApfsInfo();
 
   // Handler for IOCTL_GET_RETRIEVAL_POINTERS2
   virtual int OnGetRetrievalPointers();
